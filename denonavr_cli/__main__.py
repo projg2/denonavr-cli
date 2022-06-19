@@ -14,6 +14,34 @@ class Subcommand:
         pass
 
 
+class input(Subcommand):
+    """Print and control inputs"""
+
+    @staticmethod
+    def add_arguments(subc):
+        subc.add_argument("-l", "--list",
+                          action="store_true",
+                          help="List available inputs")
+        subc.add_argument("new_input",
+                          nargs="?",
+                          help="Switch to another input")
+
+    @staticmethod
+    async def run(avr, args):
+        if args.list:
+            for x in avr.input_func_list:
+                print(x)
+            return 0
+        if args.new_input is not None:
+            await avr.async_set_input_func(args.new_input)
+            # we don't seem to be able to wait for the switch to actually
+            # happen but denonavr verifies the new input name, so it should
+            # work anyway
+            print(args.new_input)
+            return 0
+        print(avr.input_func)
+
+
 class mute(Subcommand):
     """Print and control mute"""
 
@@ -127,6 +155,7 @@ async def main(argv):
                                dest="command")
     subc = subp.add_parser("discover",
                            help="Print autodiscovered receivers and exit")
+    add_subcommand(subp, input)
     add_subcommand(subp, mute)
     add_subcommand(subp, power)
     add_subcommand(subp, volume)
