@@ -111,6 +111,43 @@ class power(Subcommand):
         return 0
 
 
+class shell(Subcommand):
+    """Launch a Python shell with AVR connection object"""
+
+    @staticmethod
+    def add_arguments(subc):
+        subc.add_argument("-s", "--shell",
+                          choices=("ipython", "python"),
+                          help="Shell to use (default: autodetect)")
+
+    @staticmethod
+    async def run(avr, args):
+        BANNER = 'The AVR connection is available as "avr" object'
+
+        if args.shell is None:
+            try:
+                from IPython import embed
+                import nest_asyncio
+            except ImportError:
+                args.shell = "python"
+            else:
+                args.shell = "ipython"
+
+        if args.shell == "ipython":
+            from IPython import embed
+            import nest_asyncio
+
+            nest_asyncio.apply()
+            embed(banner2=BANNER)
+            return 0
+
+        if args.shell == "python":
+            from code import InteractiveConsole
+
+            InteractiveConsole({"avr": avr}).interact(banner=BANNER)
+            return 0
+
+
 class volume(Subcommand):
     """Print and control volume"""
 
@@ -158,6 +195,7 @@ async def main(argv):
     add_subcommand(subp, input)
     add_subcommand(subp, mute)
     add_subcommand(subp, power)
+    add_subcommand(subp, shell)
     add_subcommand(subp, volume)
 
     args = argp.parse_args(argv[1:])
