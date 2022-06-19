@@ -1,0 +1,16 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "denonavr_cli"
+authors = [{name = "Michał Górny", email = "mgorny@gentoo.org"}]
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version", "description"]
+
+[project.urls]
+Homepage = "https://github.com/mgorny/denonavr-cli/"
+
+[project.scripts]
+denonavr-cli = "denonavr_cli.__main__:entry_point"
