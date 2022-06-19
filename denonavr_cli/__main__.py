@@ -14,6 +14,51 @@ class Subcommand:
         pass
 
 
+class mute(Subcommand):
+    """Print and control mute"""
+
+    @staticmethod
+    def add_arguments(subc):
+        subc.add_argument("new_state",
+                          choices=("off", "on", "toggle"),
+                          nargs="?",
+                          help="Requested state change")
+
+    @staticmethod
+    async def run(avr, args):
+        if args.new_state is not None:
+            if args.new_state == "toggle":
+                args.new_state = "off" if avr.muted else "on"
+            await avr.async_mute(True if args.new_state == "on" else False)
+            await avr.async_update()
+        print(avr.muted)
+        return 0
+
+
+class power(Subcommand):
+    """Print and control power"""
+
+    @staticmethod
+    def add_arguments(subc):
+        subc.add_argument("new_state",
+                          choices=("off", "on", "toggle"),
+                          nargs="?",
+                          help="Requested state change")
+
+    @staticmethod
+    async def run(avr, args):
+        if args.new_state is not None:
+            if args.new_state == "toggle":
+                args.new_state = "off" if avr.power == "ON" else "on"
+            if args.new_state == "on":
+                await avr.async_power_on()
+            else:
+                await avr.async_power_off()
+            await avr.async_update()
+        print(avr.power)
+        return 0
+
+
 class power(Subcommand):
     """Print and control power"""
 
@@ -82,6 +127,7 @@ async def main(argv):
                                dest="command")
     subc = subp.add_parser("discover",
                            help="Print autodiscovered receivers and exit")
+    add_subcommand(subp, mute)
     add_subcommand(subp, power)
     add_subcommand(subp, volume)
 
@@ -117,7 +163,8 @@ async def main(argv):
     if args.command is not None:
         return await globals()[args.command].run(avr, args)
 
-    print(f"Power: {avr.power:7}  Volume: {avr.volume:5}  "
+    print(f"Power: {avr.power:7}  Volume: {avr.volume:5} "
+          f"{'(muted)' if avr.muted else '       '} "
           f"Input: {avr.input_func}")
 
     return 0
