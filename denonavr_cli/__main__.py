@@ -1,9 +1,11 @@
 import argparse
 import asyncio
+import os
 import os.path
 import sys
 
 import denonavr
+import denonavr.exceptions
 
 import denonavr_cli
 
@@ -172,6 +174,11 @@ async def main(argv):
                                    description=denonavr_cli.__doc__)
     argp.add_argument("-H", "--host",
                       help="Host to use (default: autodiscover)")
+    argp.add_argument("--host-cache",
+                      choices=("off", "on", "reset"),
+                      default="on",
+                      help="Whether to cache the last used hostname "
+                           "(or reset the cached value)")
     argp.add_argument("-V", "--version",
                       action="store_true",
                       help="Print version and exit")
@@ -192,7 +199,27 @@ async def main(argv):
         print(f"denonavr-cli {denonavr_cli.__version__}")
         return 0
 
+    xdg_cache_home = os.path.expanduser(
+        os.getenv("XDG_CACHE_HOME",
+                  os.path.join(os.getenv("HOME", "~"), ".cache")))
+    host_cache = os.path.join(xdg_cache_home, "denonavr-cli.host")
+
+    avr = None
     discover = args.command == "discover"
+    if not discover and args.host_cache == "on":
+        try:
+            with open(host_cache, "r") as f:
+                host = f.read().strip()
+            try_avr = denonavr.DenonAVR(host)
+            await try_avr.async_setup()
+            await try_avr.async_update()
+        except FileNotFoundError:
+            pass
+        except denonavr.exceptions.AvrNetworkError:
+            print(f"Cached host {host} failed to connect, ignoring")
+        else:
+            args.host = host
+            avr = try_avr
     if args.host is None or discover:
         avrs = await denonavr.async_discover()
         if not avrs:
@@ -211,9 +238,14 @@ async def main(argv):
                            "select one via --host")
         args.host = avrs[0]["host"]
 
-    avr = denonavr.DenonAVR(args.host)
-    await avr.async_setup()
-    await avr.async_update()
+    if avr is None:
+        avr = denonavr.DenonAVR(args.host)
+        await avr.async_setup()
+        await avr.async_update()
+
+    if args.host_cache != "off":
+        with open(host_cache, "w") as f:
+            f.write(f"{args.host}\n")
 
     if args.command is not None:
         return await globals()[args.command].run(avr, argp, args)
