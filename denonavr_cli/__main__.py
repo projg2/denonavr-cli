@@ -129,21 +129,33 @@ class volume(Subcommand):
 
     @staticmethod
     def add_arguments(subc):
-        subc.add_argument("-r", "--relative",
-                          action="store_true",
-                          help="Adjust the current volume by <value>")
+        subc.add_argument("action",
+                          nargs="?",
+                          choices=("down", "set", "up"),
+                          help="Change to perform")
         subc.add_argument("value",
                           nargs="?",
                           type=float,
-                          help="New volume")
+                          help="New value or adjustment")
 
     @staticmethod
     async def run(avr, argp, args):
-        if args.value is not None:
-            new_volume = args.value
-            if args.relative:
-                new_volume += avr.volume
-            await avr.async_set_volume(new_volume)
+        if args.action is not None:
+            if args.value is not None:
+                new_volume = args.value
+                if args.action == "down":
+                    new_volume *= -1
+                if args.action != "set":
+                    new_volume += avr.volume
+                await avr.async_set_volume(new_volume)
+            else:
+                if args.action == "down":
+                    await avr.async_volume_down()
+                elif args.action == "up":
+                    await avr.async_volume_up()
+                else:  # "set"
+                    argp.error(
+                        "New volume needs to be provided for 'set' action")
             await avr.async_update()
         print(avr.volume)
         return 0
