@@ -27,7 +27,7 @@ class input(Subcommand):
                           help="Switch to another input")
 
     @staticmethod
-    async def run(avr, args):
+    async def run(avr, argp, args):
         if args.list:
             for x in avr.input_func_list:
                 print(x)
@@ -53,7 +53,7 @@ class mute(Subcommand):
                           help="Requested state change")
 
     @staticmethod
-    async def run(avr, args):
+    async def run(avr, argp, args):
         if args.new_state is not None:
             if args.new_state == "toggle":
                 args.new_state = "off" if avr.muted else "on"
@@ -74,7 +74,7 @@ class power(Subcommand):
                           help="Requested state change")
 
     @staticmethod
-    async def run(avr, args):
+    async def run(avr, argp, args):
         if args.new_state is not None:
             if args.new_state == "toggle":
                 args.new_state = "off" if avr.power == "ON" else "on"
@@ -97,7 +97,7 @@ class shell(Subcommand):
                           help="Shell to use (default: autodetect)")
 
     @staticmethod
-    async def run(avr, args):
+    async def run(avr, argp, args):
         BANNER = 'The AVR connection is available as "avr" object'
 
         if args.shell is None:
@@ -138,7 +138,7 @@ class volume(Subcommand):
                           help="New volume")
 
     @staticmethod
-    async def run(avr, args):
+    async def run(avr, argp, args):
         if args.value is not None:
             new_volume = args.value
             if args.relative:
@@ -204,7 +204,7 @@ async def main(argv):
     await avr.async_update()
 
     if args.command is not None:
-        return await globals()[args.command].run(avr, args)
+        return await globals()[args.command].run(avr, argp, args)
 
     print(f"Power: {avr.power:7}  Volume: {avr.volume:5} dB "
           f"{'(muted)' if avr.muted else '       '} "
