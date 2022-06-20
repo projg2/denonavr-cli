@@ -87,30 +87,6 @@ class power(Subcommand):
         return 0
 
 
-class power(Subcommand):
-    """Print and control power"""
-
-    @staticmethod
-    def add_arguments(subc):
-        subc.add_argument("new_state",
-                          choices=("off", "on", "toggle"),
-                          nargs="?",
-                          help="Requested state change")
-
-    @staticmethod
-    async def run(avr, args):
-        if args.new_state is not None:
-            if args.new_state == "toggle":
-                args.new_state = "off" if avr.power == "ON" else "on"
-            if args.new_state == "on":
-                await avr.async_power_on()
-            else:
-                await avr.async_power_off()
-            await avr.async_update()
-        print(avr.power)
-        return 0
-
-
 class shell(Subcommand):
     """Launch a Python shell with AVR connection object"""
 
