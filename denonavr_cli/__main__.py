@@ -230,7 +230,7 @@ async def main(argv):
     if args.command is not None:
         return await globals()[args.command].run(avr, args)
 
-    print(f"Power: {avr.power:7}  Volume: {avr.volume:5} "
+    print(f"Power: {avr.power:7}  Volume: {avr.volume:5} dB "
           f"{'(muted)' if avr.muted else '       '} "
           f"Input: {avr.input_func}")
 
