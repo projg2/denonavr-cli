@@ -19,3 +19,6 @@ Homepage = "https://github.com/mgorny/denonavr-cli/"
 
 [project.scripts]
 denonavr-cli = "denonavr_cli.__main__:entry_point"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
