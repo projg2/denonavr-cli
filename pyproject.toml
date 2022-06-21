@@ -15,6 +15,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+ipython-shell = [
+    "ipython",
+    "nest_asyncio",
+]
 test = [
     "pytest",
     "pytest-asyncio",
