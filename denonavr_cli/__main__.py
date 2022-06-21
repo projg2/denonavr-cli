@@ -42,6 +42,7 @@ class input(Subcommand):
             print(args.new_input)
             return 0
         print(avr.input_func)
+        return 0
 
 
 class mute(Subcommand):
