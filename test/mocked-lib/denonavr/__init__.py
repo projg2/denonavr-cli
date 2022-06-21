@@ -1,4 +1,6 @@
-TEST_DATA = {}
+TEST_DATA = {
+    "instance_counter": 0,
+}
 
 INITIAL_VALUES = {
     "input_func": "Game",
@@ -11,7 +13,9 @@ INITIAL_VALUES = {
 
 class DenonAVR:
     def __init__(self, host):
+        TEST_DATA["instance_counter"] += 1
         self.new_values = {}
+        self.setup_called = False
         assert host == "mocked-host"
 
     async def async_mute(self, new_state):
@@ -24,6 +28,8 @@ class DenonAVR:
         self.new_values["power"] = "ON"
 
     async def async_setup(self):
+        assert not self.setup_called
+        self.setup_called = True
         self.new_values = INITIAL_VALUES
 
     async def async_set_input_func(self, new_input):
@@ -36,6 +42,7 @@ class DenonAVR:
         self.new_values["volume"] = new_volume
 
     async def async_update(self):
+        assert self.setup_called
         self.__dict__.update(self.new_values)
         self.new_values = {}
 

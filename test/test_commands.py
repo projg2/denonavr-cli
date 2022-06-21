@@ -14,9 +14,11 @@ def override_initial(key, value):
 
 class CommandTest:
     async def run(self, *args):
+        TEST_DATA["instance_counter"] = 0
         assert await main(["denonavr-cli", "--host-cache", "off",
                            "--host", "mocked-host", self.command]
                           + list(args)) == 0
+        assert TEST_DATA["instance_counter"] == 1
 
     async def test_print(self, capsys):
         await self.run()
