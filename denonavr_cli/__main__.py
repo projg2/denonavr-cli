@@ -186,8 +186,8 @@ async def main(argv):
 
     subp = argp.add_subparsers(title="commands",
                                dest="command")
-    subc = subp.add_parser("discover",
-                           help="Print autodiscovered receivers and exit")
+    subp.add_parser("discover",
+                    help="Print autodiscovered receivers and exit")
     add_subcommand(subp, input)
     add_subcommand(subp, mute)
     add_subcommand(subp, power)
