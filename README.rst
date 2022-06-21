@@ -12,11 +12,18 @@ exactly one, it displays its status::
     $ denonavr-cli
     Power: ON       Volume: -54.0 dB         Input: HEOS Music
 
-Note that if there are more AVRs on the network or if you wish to
-eliminate the autodiscovery delay, you need to specify the host
-explicitly::
+Note that if there are more AVRs on the network, you need to specify
+the host explicitly::
 
     $ denonavr-cli -H 192.168.1.6
+
+After every call, the executable caches the host used, eliminating
+the autodiscovery delay for subsequent commands (but ``-H`` always
+overrides the cached value).  If the cached host is no longer
+responding, it is discarded and autodiscovery is reenabled.  You can
+also manually clear the cache via::
+
+    $ denonavr-cli --host-cache=reset
 
 To see the available commands and options::
 
@@ -31,7 +38,7 @@ status in a machine-readable format, e.g.::
 The commands that alter the state generally print the new value
 after performing the action::
 
-    $ denonavr-cli volume -r 4
+    $ denonavr-cli volume up 4
     -50.0
 
 
