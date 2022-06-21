@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import importlib
 import os
 import os.path
 import sys
@@ -105,8 +106,8 @@ class shell(Subcommand):
 
         if args.shell is None:
             try:
-                from IPython import embed
-                import nest_asyncio
+                importlib.import_module("IPython")
+                importlib.import_module("nest_asyncio")
             except ImportError:
                 args.shell = "python"
             else:
