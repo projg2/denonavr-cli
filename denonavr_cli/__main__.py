@@ -214,7 +214,6 @@ async def main(argv):
                 host = f.read().strip()
             try_avr = denonavr.DenonAVR(host)
             await try_avr.async_setup()
-            await try_avr.async_update()
         except FileNotFoundError:
             pass
         except denonavr.exceptions.AvrNetworkError:
@@ -248,7 +247,7 @@ async def main(argv):
     if avr is None:
         avr = denonavr.DenonAVR(args.host)
         await avr.async_setup()
-        await avr.async_update()
+    await avr.async_update()
 
     if args.host_cache != "off":
         with open(host_cache, "w") as f:
