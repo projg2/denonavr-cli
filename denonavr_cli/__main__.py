@@ -202,8 +202,7 @@ async def main(argv):
         return 0
 
     xdg_cache_home = os.path.expanduser(
-        os.getenv("XDG_CACHE_HOME",
-                  os.path.join(os.getenv("HOME", "~"), ".cache")))
+        os.getenv("XDG_CACHE_HOME", "~/.cache"))
     host_cache = os.path.join(xdg_cache_home, "denonavr-cli.host")
 
     avr = None
