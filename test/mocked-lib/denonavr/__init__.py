@@ -1,5 +1,6 @@
 TEST_DATA = {
     "instance_counter": 0,
+    "discovery_result": None,
 }
 
 INITIAL_VALUES = {
@@ -51,3 +52,8 @@ class DenonAVR:
 
     async def async_volume_up(self):
         self.new_values["volume"] = self.volume + 0.5
+
+
+async def async_discover():
+    assert TEST_DATA["discovery_result"] is not None
+    return TEST_DATA["discovery_result"]

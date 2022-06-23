@@ -225,8 +225,12 @@ async def main(argv):
     if args.host is None or discover:
         avrs = await denonavr.async_discover()
         if not avrs:
-            argp.error("Autodiscovery found no receivers, please supply "
-                       "--host")
+            if discover:
+                print("No AVRs discovered", file=sys.stderr)
+                return 1
+            else:
+                argp.error("Autodiscovery found no receivers, please supply "
+                           "--host")
 
         if len(avrs) > 1 or discover:
             for avr in avrs:
