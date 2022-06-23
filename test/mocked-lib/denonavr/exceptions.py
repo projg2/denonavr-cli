@@ -1,0 +1,2 @@
+class AvrNetworkError(Exception):
+    pass

@@ -1,3 +1,6 @@
+from denonavr.exceptions import AvrNetworkError
+
+
 TEST_DATA = {
     "instance_counter": 0,
     "discovery_result": None,
@@ -15,9 +18,9 @@ INITIAL_VALUES = {
 class DenonAVR:
     def __init__(self, host):
         TEST_DATA["instance_counter"] += 1
+        self.hostname = host
         self.new_values = {}
         self.setup_called = False
-        assert host == "mocked-host"
 
     async def async_mute(self, new_state):
         self.new_values["muted"] = new_state
@@ -29,6 +32,8 @@ class DenonAVR:
         self.new_values["power"] = "ON"
 
     async def async_setup(self):
+        if self.hostname != "mocked-host":
+            raise AvrNetworkError()
         assert not self.setup_called
         self.setup_called = True
         self.new_values = INITIAL_VALUES

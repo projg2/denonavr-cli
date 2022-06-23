@@ -218,7 +218,8 @@ async def main(argv):
         except FileNotFoundError:
             pass
         except denonavr.exceptions.AvrNetworkError:
-            print(f"Cached host {host} failed to connect, ignoring")
+            print(f"Cached host {host} failed to connect, ignoring",
+                  file=sys.stderr)
         else:
             args.host = host
             avr = try_avr
