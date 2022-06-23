@@ -114,17 +114,17 @@ class shell(Subcommand):
                 args.shell = "ipython"
 
         if args.shell == "ipython":
-            from IPython import embed
-            import nest_asyncio
+            IPython = importlib.import_module("IPython")
+            nest_asyncio = importlib.import_module("nest_asyncio")
 
             nest_asyncio.apply()
-            embed(banner2=BANNER)
+            IPython.embed(banner2=BANNER)
             return 0
 
         if args.shell == "python":
-            from code import InteractiveConsole
+            code = importlib.import_module("code")
 
-            InteractiveConsole({"avr": avr}).interact(banner=BANNER)
+            code.InteractiveConsole({"avr": avr}).interact(banner=BANNER)
             return 0
 
 

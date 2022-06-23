@@ -1,5 +1,9 @@
 import contextlib
 
+from unittest import mock
+
+import pytest
+
 from denonavr_cli.__main__ import main
 from denonavr import INITIAL_VALUES, TEST_DATA
 
@@ -20,12 +24,14 @@ class CommandTest:
                           + list(args)) == 0
         assert TEST_DATA["instance_counter"] == 1
 
+
+class DataCommandTest(CommandTest):
     async def test_print(self, capsys):
         await self.run()
         assert capsys.readouterr().out == f"{self.initial_value}\n"
 
 
-class BooleanTest(CommandTest):
+class BooleanCommandTest(DataCommandTest):
     off_value = "False"
     on_value = "True"
     initial_off_value = False
@@ -52,7 +58,7 @@ class BooleanTest(CommandTest):
             assert capsys.readouterr().out == f"{self.on_value}\n"
 
 
-class TestInput(CommandTest):
+class TestInput(DataCommandTest):
     command = "input"
     initial_value = "Game"
 
@@ -66,13 +72,13 @@ class TestInput(CommandTest):
         assert TEST_DATA["input_func"] == "TV Audio"
 
 
-class TestMute(BooleanTest):
+class TestMute(BooleanCommandTest):
     command = "mute"
     initial_key = "muted"
     initial_value = "False"
 
 
-class TestPower(BooleanTest):
+class TestPower(BooleanCommandTest):
     command = "power"
     initial_key = "power"
     initial_value = "ON"
@@ -81,7 +87,7 @@ class TestPower(BooleanTest):
     on_value = initial_on_value = "ON"
 
 
-class TestVolume(CommandTest):
+class TestVolume(DataCommandTest):
     command = "volume"
     initial_value = "-45.5"
 
@@ -104,3 +110,54 @@ class TestVolume(CommandTest):
     async def test_up_value(self, capsys):
         await self.run("up", "1.5")
         assert capsys.readouterr().out == "-44.0\n"
+
+
+class TestShell(CommandTest):
+    __test__ = False
+
+    command = "shell"
+
+    def mocked_import_module(self, name):
+        if name not in self.successful_imports:
+            raise ModuleNotFoundError(name)
+        self.imported_modules[name] = mock.MagicMock()
+        return self.imported_modules[name]
+
+    @pytest.fixture(autouse=True)
+    def mock_import_module(self):
+        self.imported_modules = {}
+        with mock.patch("importlib.import_module",
+                        new=self.mocked_import_module):
+            yield
+        assert (self.imported_modules.keys() ==
+                frozenset(self.successful_imports))
+
+    async def test_shell_implicit(self):
+        await self.run_shell()
+
+    async def test_shell_explicit(self):
+        await self.run_shell(f"--shell={self.shell}")
+
+
+class TestPythonShell(TestShell):
+    __test__ = True
+
+    shell = "python"
+    successful_imports = ["code"]
+
+    async def run_shell(self, *args):
+        await self.run(*args)
+        (self.imported_modules["code"].InteractiveConsole().interact
+            .assert_called())
+
+
+class TestIPythonShell(TestShell):
+    __test__ = True
+
+    shell = "ipython"
+    successful_imports = ["IPython", "nest_asyncio"]
+
+    async def run_shell(self, *args):
+        await self.run(*args)
+        self.imported_modules["IPython"].embed.assert_called()
+        self.imported_modules["nest_asyncio"].apply.assert_called()
