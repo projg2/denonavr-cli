@@ -7,11 +7,33 @@ import importlib
 import os
 import os.path
 import sys
+import time
+
+from typing import Callable
 
 import denonavr
 import denonavr.exceptions
 
 import denonavr_cli
+
+
+async def wait_for_update(avr: denonavr.DenonAVR,
+                          callback: Callable[[], bool],
+                          ) -> bool:
+    """
+    Wait for the update to take effect
+
+    Repeatedly try updating AVR status, calling the callback to verify
+    if the update took effect. If the callback succeeds, returns True.
+    If it keeps failing until the timeout, returns False.
+    """
+
+    for attempt in range(20):
+        await avr.async_update()
+        if callback():
+            return True
+        time.sleep(0.2)
+    return False
 
 
 class Subcommand:
@@ -168,8 +190,38 @@ class volume(Subcommand):
         return 0
 
 
+class sound_mode(Subcommand):
+    """Print and control sound mode"""
+
+    @staticmethod
+    def add_arguments(subc):
+        subc.add_argument("-l", "--list",
+                          action="store_true",
+                          help="List available sound modes")
+        subc.add_argument("new_mode",
+                          nargs="?",
+                          help="Switch to another sound mode")
+
+    @staticmethod
+    async def run(avr, argp, args):
+        if args.list:
+            for x in avr.sound_mode_list:
+                print(x)
+            return 0
+
+        if args.new_mode is not None:
+            await avr.async_set_sound_mode(args.new_mode)
+            ret = await wait_for_update(
+                avr, lambda: avr.sound_mode == args.new_mode)
+            print(avr.sound_mode)
+            return 0 if ret else 1
+
+        print(avr.sound_mode)
+        return 0
+
+
 def add_subcommand(subp, cmd_class):
-    subc = subp.add_parser(cmd_class.__name__,
+    subc = subp.add_parser(cmd_class.__name__.replace("_", "-"),
                            help=cmd_class.__doc__)
     cmd_class.add_arguments(subc)
 
@@ -197,6 +249,7 @@ async def main(argv):
     add_subcommand(subp, power)
     add_subcommand(subp, shell)
     add_subcommand(subp, volume)
+    add_subcommand(subp, sound_mode)
 
     args = argp.parse_args(argv[1:])
 
@@ -256,7 +309,8 @@ async def main(argv):
             f.write(f"{args.host}\n")
 
     if args.command is not None:
-        return await globals()[args.command].run(avr, argp, args)
+        command_class = globals()[args.command.replace("-", "_")]
+        return await command_class.run(avr, argp, args)
 
     print(f"Power: {avr.power:7}  Volume: {avr.volume:5} dB "
           f"{'(muted)' if avr.muted else '       '} "

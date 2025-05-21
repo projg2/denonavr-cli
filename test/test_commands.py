@@ -3,6 +3,7 @@
 
 import contextlib
 
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -20,11 +21,11 @@ def override_initial(key, value):
 
 
 class CommandTest:
-    async def run(self, *args):
+    async def run(self, *args: Any, expected: int = 0) -> None:
         TEST_DATA["instance_counter"] = 0
         assert await main(["denonavr-cli", "--host-cache", "off",
                            "--host", "mocked-host", self.command]
-                          + list(args)) == 0
+                          + list(args)) == expected
         assert TEST_DATA["instance_counter"] == 1
 
 
@@ -73,6 +74,25 @@ class TestInput(DataCommandTest):
         await self.run("TV Audio")
         assert capsys.readouterr().out == "TV Audio\n"
         assert TEST_DATA["input_func"] == "TV Audio"
+
+
+class TestSoundMode(DataCommandTest):
+    command = "sound-mode"
+    initial_value = "MCH STEREO"
+
+    async def test_list(self, capsys):
+        await self.run("--list")
+        assert capsys.readouterr().out == "DIRECT\nMCH STEREO\nMOVIE\nMUSIC\n"
+
+    async def test_set(self, capsys):
+        await self.run("DIRECT")
+        assert capsys.readouterr().out == "DIRECT\n"
+
+    async def test_set_fail(self, capsys):
+        # mock sleep out not to waste time
+        with mock.patch("time.sleep"):
+            await self.run("FAKE", expected=1)
+        assert capsys.readouterr().out == "MCH STEREO\n"
 
 
 class TestMute(BooleanCommandTest):

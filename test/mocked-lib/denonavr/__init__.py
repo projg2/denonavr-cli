@@ -14,6 +14,8 @@ INITIAL_VALUES = {
     "input_func_list": ["AUX", "Game", "TV Audio"],
     "muted": False,
     "power": "ON",
+    "sound_mode": "MCH STEREO",
+    "sound_mode_list": ["DIRECT", "MCH STEREO", "MOVIE", "MUSIC"],
     "volume": -45.5,
 }
 
@@ -45,6 +47,12 @@ class DenonAVR:
         assert isinstance(new_input, str)
         # apparently input is not updated immediately
         TEST_DATA["input_func"] = new_input
+
+    async def async_set_sound_mode(self, new_mode: str) -> None:
+        assert isinstance(new_mode, str)
+        # a cheap hack: if new_mode is not in list, we stay in old mode
+        if new_mode in INITIAL_VALUES["sound_mode_list"]:
+            self.new_values["sound_mode"] = new_mode
 
     async def async_set_volume(self, new_volume):
         assert isinstance(new_volume, float)
