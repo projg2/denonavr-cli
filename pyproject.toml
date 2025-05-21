@@ -5,8 +5,13 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "denonavr_cli"
 authors = [{name = "Michał Górny", email = "mgorny@gentoo.org"}]
-license = {file = "LICENSE"}
-classifiers = ["License :: OSI Approved :: MIT License"]
+license = {text = "GPL-2.0-or-later"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Programming Language :: Python :: 3 :: Only",
+]
 dynamic = ["version", "description"]
 readme = {file = "README.rst", content-type = "text/x-rst"}
 requires-python = ">=3.7"
