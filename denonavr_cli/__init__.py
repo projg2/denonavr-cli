@@ -3,4 +3,4 @@
 
 """A simple CLI for Denon AV receivers"""
 
-__version__ = "3"
+__version__ = "4"
